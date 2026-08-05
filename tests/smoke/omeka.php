@@ -8,6 +8,7 @@ use Laminas\Authentication\AuthenticationService;
 use Laminas\Log\Logger;
 use Laminas\View\Helper\BasePath;
 use OIDC\Controller\OIDCController;
+use OIDC\Form\OIDCForm;
 use OIDC\Service\Controller\OIDCControllerFactory;
 
 $modulePath = dirname(__DIR__, 2);
@@ -73,6 +74,20 @@ if ($config['controllers']['factories'][OIDCController::class] !== OIDCControlle
 }
 if (!$controller instanceof OIDCController) {
     throw new RuntimeException('The Omeka service factory did not construct the OIDC controller.');
+}
+
+$insecureIssuerForm = new OIDCForm();
+$insecureIssuerForm->init();
+$insecureIssuerForm->setData(['oidc_discovery' => 'http://idp.example.test']);
+if ($insecureIssuerForm->isValid()) {
+    throw new RuntimeException('The module configuration accepted an insecure issuer URI.');
+}
+
+$secureIssuerForm = new OIDCForm();
+$secureIssuerForm->init();
+$secureIssuerForm->setData(['oidc_discovery' => 'https://idp.example.test']);
+if (! $secureIssuerForm->isValid()) {
+    throw new RuntimeException('The module configuration rejected a valid HTTPS issuer URI.');
 }
 
 fwrite(STDOUT, "OIDC module loaded and its controller was constructed in Omeka S.\n");
