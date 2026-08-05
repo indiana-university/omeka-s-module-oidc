@@ -4,12 +4,13 @@
 	"license": "Apache-2.0",
 	"config": {
 		"platform": {
-			"php": "8.0"
+			"php": "8.2.0"
 		}
 	},
 	"require": {
-        	"guzzlehttp/guzzle": "^7.5",
-        	"facile-it/php-openid-client": "^0.3.0",
-        	"laminas/laminas-diactoros": "^2.18.1"
-    	}
+		"guzzlehttp/guzzle": "^7.15.2",
+		"facile-it/php-openid-client": "^1.0",
+		"laminas/laminas-diactoros": "^2.18.1",
+		"php": "^8.2"
+	}
 }
