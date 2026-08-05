@@ -1,0 +1,63 @@
+---
+name: CI
+
+'on':
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: PHP 8.2 / Omeka S 4.2.1
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out module
+        uses: actions/checkout@v6
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: fileinfo, intl, mbstring, pdo_mysql, xml
+          coverage: none
+          tools: composer:v2
+
+      - name: Install module dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Validate Composer metadata
+        run: composer validate --strict
+
+      - name: Audit locked dependencies
+        run: composer audit --locked --no-interaction
+
+      - name: Lint PHP
+        run: composer lint
+
+      - name: Run unit tests
+        run: composer test
+
+      - name: Install Omeka S 4.2.1
+        env:
+          OMEKA_VERSION: '4.2.1'
+          OMEKA_RELEASES: https://github.com/omeka/omeka-s/archive/refs/tags
+        run: |
+          curl --fail --silent --show-error --location \
+            "${OMEKA_RELEASES}/v${OMEKA_VERSION}.tar.gz" \
+            --output "$RUNNER_TEMP/omeka.tar.gz"
+          mkdir "$RUNNER_TEMP/omeka"
+          tar --extract --gzip --file "$RUNNER_TEMP/omeka.tar.gz" \
+            --directory "$RUNNER_TEMP/omeka" --strip-components=1
+          composer install --working-dir="$RUNNER_TEMP/omeka" \
+            --no-dev --no-interaction --prefer-dist --no-progress
+
+      - name: Smoke test against Omeka S
+        env:
+          OMEKA_PATH: ${{ runner.temp }}/omeka
+        run: php tests/smoke/omeka.php
