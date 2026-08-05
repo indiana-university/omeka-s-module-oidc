@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace OIDC\Test\Unit;
 
-use JsonException;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
