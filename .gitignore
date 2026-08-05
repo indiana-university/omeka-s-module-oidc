@@ -1,6 +1,7 @@
 # Composer files
 composer.phar
 vendor/
+.phpunit.cache/
 
 # Local configs
 config/autoload/*.local.php

@@ -1,0 +1,6 @@
+{
+  "sub": "fixture-subject-123",
+  "email": "researcher@example.test",
+  "email_verified": true,
+  "groups": ["omeka-users", "researchers"]
+}
