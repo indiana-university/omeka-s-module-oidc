@@ -21,6 +21,7 @@ use Facile\OpenIDClient\Token\TokenSet;
 use Psr\Http\Message\ServerRequestInterface;
 use GuzzleHttp\Psr7\Response;
 use Laminas\Diactoros\ServerRequestFactory;
+use OIDC\Security\ProviderMetadataValidator;
 use OIDC\Session\AuthorizationTransaction;
 
 class OIDCController extends AbstractActionController
@@ -32,6 +33,7 @@ class OIDCController extends AbstractActionController
     private $redirect;
     private $authorizationService;
     private $authorizationTransaction;
+    private $providerMetadataValidator;
     private $config;
 
     public function __construct(EntityManager $entityManager, AuthenticationService $auth, BasePath $basePath, array $config, Logger $logger)
@@ -42,6 +44,7 @@ class OIDCController extends AbstractActionController
         $this->redirect = "http" . (($_SERVER['SERVER_PORT'] == 443) ? "s" : "") . "://" . $_SERVER['HTTP_HOST'] . $basePath() . "/oidc/redirect";
         $this->authorizationService = (new AuthorizationServiceBuilder())->build();
         $this->authorizationTransaction = new AuthorizationTransaction();
+        $this->providerMetadataValidator = new ProviderMetadataValidator();
         $this->config = $config;
         $this->logger = $logger;
     }
@@ -52,25 +55,30 @@ class OIDCController extends AbstractActionController
             return $this->redirect()->toRoute('top');
         }
 
-        $session = Container::getDefaultManager()->getStorage();
-        $client = $this->getClient();
-        $authorizationService = $this->authorizationService;
-        $authSession = $this->authorizationTransaction->start($session);
+        try {
+            $session = Container::getDefaultManager()->getStorage();
+            $client = $this->getClient();
+            $authorizationService = $this->authorizationService;
+            $authSession = $this->authorizationTransaction->start($session);
 
-        //Use this uri to redirect the user for authN
-        $redirectAuthorizationUri = $authorizationService->getAuthorizationUri(
-            $client,
-            [
-                'login_hint' => 'username@example.com',
-                'scope' => 'openid email',
-                'nonce' => $authSession->getNonce(),
-                'state' => $authSession->getState(),
-                'code_challenge' => $this->authorizationTransaction->getCodeChallenge($authSession),
-                'code_challenge_method' => 'S256',
+            //Use this uri to redirect the user for authN
+            $redirectAuthorizationUri = $authorizationService->getAuthorizationUri(
+                $client,
+                [
+                    'login_hint' => 'username@example.com',
+                    'scope' => 'openid email',
+                    'nonce' => $authSession->getNonce(),
+                    'state' => $authSession->getState(),
+                    'code_challenge' => $this->authorizationTransaction->getCodeChallenge($authSession),
+                    'code_challenge_method' => 'S256',
 
-            ] // custom params
-        );
-        return $this->redirect()->toUrl($redirectAuthorizationUri);
+                ] // custom params
+            );
+            return $this->redirect()->toUrl($redirectAuthorizationUri);
+        } catch (\Throwable) {
+            $this->logger()->info('OIDC: Authentication failed');
+            return $this->redirect()->toRoute('top');
+        }
     }
 
     public function redirectAction()
@@ -156,8 +164,17 @@ class OIDCController extends AbstractActionController
     protected function getClient()
     {
         $redirect = $this->redirect;
-        $discoveryDocumentURI = $this->settings()->get('oidc_discovery');
-        $issuer = (new IssuerBuilder())->build($discoveryDocumentURI);
+        $configuredIssuer = $this->settings()->get('oidc_discovery');
+        if (! is_string($configuredIssuer)) {
+            throw new \UnexpectedValueException('OIDC issuer is not configured.');
+        }
+
+        $this->providerMetadataValidator->validateIssuer($configuredIssuer);
+        $issuer = (new IssuerBuilder())->build($configuredIssuer);
+        $this->providerMetadataValidator->validateMetadata(
+            $configuredIssuer,
+            $issuer->getMetadata()->toArray()
+        );
 	    $config = $this->config;
 
 	    $clientId = $config['oidc']['client_id'];

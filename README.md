@@ -31,6 +31,12 @@ Add the OIDC client and secret to /config/local.config.php in your Omeka install
 ],
 ```
 
+In the module configuration, enter the exact HTTPS issuer URI published in the
+provider metadata, for example `https://idp.example.edu`. Do not enter the full
+`/.well-known/openid-configuration` document URL. The discovered issuer must
+match this value exactly, and the authorization, token, JWKS, and UserInfo
+endpoints must use the same HTTPS origin.
+
 ## Development
 
 The supported development and deployment runtime is PHP 8.2. Install dependencies
