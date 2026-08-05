@@ -30,3 +30,26 @@ Add the OIDC client and secret to /config/local.config.php in your Omeka install
     'client_secret' => '*****',
 ],
 ```
+
+## Development
+
+The supported development and deployment runtime is PHP 8.2. Install dependencies
+and run the required pull-request checks with:
+
+```console
+composer install
+composer validate --strict
+composer audit --locked
+composer lint
+composer test
+```
+
+The unit suite uses deterministic fixtures under `tests/fixtures` and does not
+contact a live identity provider or require production credentials.
+
+CI also runs `tests/smoke/omeka.php` against Omeka S 4.2.1. To run that check
+locally, install Omeka S and set `OMEKA_PATH` to its root directory:
+
+```console
+OMEKA_PATH=/path/to/omeka-s php tests/smoke/omeka.php
+```
