@@ -10,8 +10,10 @@ use Laminas\Form\Element\Password;
 use Omeka\Form\Element\RoleSelect;
 use Omeka\Form\Element\SiteSelect;
 use Laminas\Form\Form;
-use Laminas\InputFilter\InputFilterProviderInterface;
+use Laminas\InputFilter\InputFilter;
 use Laminas\Validator\StringLength;
+use Laminas\Validator\Callback;
+use OIDC\Security\ProviderMetadataValidator;
 
 class OIDCForm extends Form
 {
@@ -22,8 +24,8 @@ class OIDCForm extends Form
             'name'    => 'oidc_discovery',
             'type'    => Url::class,
             'options' => [
-                'label' => 'Discovery Document URI',
-                'info'  => 'Discovery endpoint for the OIDC provider.',
+                'label' => 'OIDC Issuer URI',
+                'info'  => 'Exact HTTPS issuer URI published by the OIDC provider.',
             ],
             'attributes' => [
                 'id' => 'oidc_discovery',
@@ -62,5 +64,47 @@ class OIDCForm extends Form
 	 */
 
 	// …
+
+        $inputFilter = new InputFilter();
+        $inputFilter->add(
+            $this->getInputFilterSpecification()['oidc_discovery'],
+            'oidc_discovery'
+        );
+        $this->setInputFilter($inputFilter);
+        $this->setPreferFormInputFilter(true);
+    }
+
+    public function getInputFilterSpecification(): array
+    {
+        return [
+            'oidc_discovery' => [
+                'required' => true,
+                'filters' => [
+                    ['name' => StringTrim::class],
+                ],
+                'validators' => [
+                    [
+                        'name' => Callback::class,
+                        'options' => [
+                            'callback' => static function ($value): bool {
+                                if (! is_string($value)) {
+                                    return false;
+                                }
+
+                                try {
+                                    (new ProviderMetadataValidator())->validateIssuer($value);
+                                    return true;
+                                } catch (\UnexpectedValueException) {
+                                    return false;
+                                }
+                            },
+                            'messages' => [
+                                Callback::INVALID_VALUE => 'Enter the exact HTTPS issuer URI without credentials, a query, or a fragment.',
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ];
     }
 }
