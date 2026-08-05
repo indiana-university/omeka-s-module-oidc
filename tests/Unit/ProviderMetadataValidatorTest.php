@@ -93,7 +93,7 @@ final class ProviderMetadataValidatorTest extends TestCase
         return [
             ['authorization_endpoint', 'http://idp.example.test/authorize'],
             ['token_endpoint', 'https://attacker.example.test/token'],
-            ['jwks_uri', 'https://user:password@idp.example.test/jwks'],
+            ['jwks_uri', 'https://user@idp.example.test/jwks'],
             ['userinfo_endpoint', 'https://idp.example.test/userinfo#fragment'],
             ['authorization_endpoint', 'https://bad host.example.test/authorize'],
             ['token_endpoint', 'https://idp.example.test:8443/token'],

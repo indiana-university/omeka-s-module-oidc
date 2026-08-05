@@ -11,7 +11,6 @@ use Omeka\Form\Element\RoleSelect;
 use Omeka\Form\Element\SiteSelect;
 use Laminas\Form\Form;
 use Laminas\InputFilter\InputFilter;
-use Laminas\InputFilter\InputFilterProviderInterface;
 use Laminas\Validator\StringLength;
 use Laminas\Validator\Callback;
 use OIDC\Security\ProviderMetadataValidator;
