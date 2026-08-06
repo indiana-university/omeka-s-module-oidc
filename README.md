@@ -59,3 +59,15 @@ locally, install Omeka S and set `OMEKA_PATH` to its root directory:
 ```console
 OMEKA_PATH=/path/to/omeka-s php tests/smoke/omeka.php
 ```
+
+## Releases
+
+Every releasable code or production-dependency change must update `version` in
+`config/module.ini` in the same pull request. Choose the next unused semantic
+version after the latest repository tag. Documentation-only, test-only, and
+CI-only changes do not require a version bump unless they are intentionally
+being published as a release.
+
+After the pull request is merged and CI passes, create an immutable tag matching
+the declared module version at the merge commit, then publish the corresponding
+GitHub Release. Never reuse or move an existing release tag.
