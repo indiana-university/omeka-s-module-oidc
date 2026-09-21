@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace OIDC\Test\Unit;
 
 use OIDC\Security\UserInfoClaims;
