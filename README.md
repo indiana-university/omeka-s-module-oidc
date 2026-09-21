@@ -8,9 +8,9 @@ Begin by downloading the software using one of the two methods below.
 Option 1: Use git clone to install the module in your Omeka-S modules folder, e.g.:
 ```
 cd <path>/omeka-s/modules 
-git clone https://github.iu.edu/RDServices/Omeka-s-module-OIDC.git OIDC
+git clone https://github.com/indiana-university/omeka-s-module-oidc.git OIDC
 ```
-Option 2: Download a zip file of the module from https://github.iu.edu/RDServices/Omeka-s-module-OIDC and (if necessary) unzip it. Then move the module to your Omeka-S modules folder, e.g.:
+Option 2: Download a zip file of the module from https://github.com/indiana-university/omeka-s-module-oidc and (if necessary) unzip it. Then move the module to your Omeka-S modules folder, e.g.:
 
 ```
 mkdir -p <path>/omeka-s/modules/OIDC
