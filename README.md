@@ -37,6 +37,34 @@ provider metadata, for example `https://idp.example.edu`. Do not enter the full
 match this value exactly, and the authorization, token, JWKS, and UserInfo
 endpoints must use the same HTTPS origin.
 
+### Diagnostic logging
+
+The module normally records only a generic authentication failure. To investigate
+an OIDC provider problem, enable **OIDC diagnostic logging** in the module
+configuration and reproduce the login failure. Diagnostic entries include the
+exception type and message and, when UserInfo lacks an email address, the names
+of the returned claims, but not their values. Omeka logging must also be enabled
+for these entries to be recorded.
+
+When the Omeka S **Log** module is enabled with its default configuration, no
+additional integration is needed: OIDC uses the shared `Omeka\Logger` service,
+so entries are available in the Log module's admin log and in
+`logs/application.log`. If the Log module's writers or severity filters have
+been customized, ensure that warning and notice messages are retained.
+
+Without the Log module, enable Omeka's core logger in the site's
+`config/local.config.php`, for example:
+
+```php
+'logger' => [
+    'log' => true,
+],
+```
+
+The module does not override Omeka's global logging configuration. Because
+provider or library exception text is included, protect access to the log and
+disable OIDC diagnostic logging after troubleshooting.
+
 ## Development
 
 The supported development and deployment runtime is PHP 8.2. Install dependencies
