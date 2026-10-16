@@ -22,6 +22,7 @@ use Psr\Http\Message\ServerRequestInterface;
 use GuzzleHttp\Psr7\Response;
 use Laminas\Diactoros\ServerRequestFactory;
 use OIDC\Security\ProviderMetadataValidator;
+use OIDC\Security\UserInfoClaims;
 use OIDC\Session\AuthorizationTransaction;
 
 class OIDCController extends AbstractActionController
@@ -75,8 +76,10 @@ class OIDCController extends AbstractActionController
                 ] // custom params
             );
             return $this->redirect()->toUrl($redirectAuthorizationUri);
-        } catch (\Throwable) {
-            $this->logger()->info('OIDC: Authentication failed');
+        } catch (\Throwable $error) {
+            $log = $this->logger();
+            $log->info('OIDC: Authentication failed');
+            $this->logDiagnosticFailure($log, $error);
             return $this->redirect()->toRoute('top');
         }
     }
@@ -120,8 +123,19 @@ class OIDCController extends AbstractActionController
             // Get user info
             $userInfoService = (new UserInfoServiceBuilder())->build();
             $userInfo = $userInfoService->getUserInfo($client, $tokenSet);
-            $email = $userInfo['email'];
-            //TODO: need to add some error checking here
+            $email = UserInfoClaims::email($userInfo);
+            if (null === $email) {
+                $log->warn('OIDC: Login rejected because the UserInfo response did not include a usable email claim.');
+                if ($this->diagnosticsEnabled()) {
+                    $claimNames = json_encode(array_keys($userInfo), JSON_UNESCAPED_SLASHES);
+                    $log->notice('OIDC diagnostic: UserInfo claim names: ' . $claimNames);
+                }
+                $this->messenger()->addError(
+                    'Login could not be completed because your identity provider did not provide a usable email address. Please contact the site administrator.'
+                );
+                return $this->redirect()->toRoute('top');
+            }
+
             $user = $this->getUser($email);
             if (!isset($user)) {
                 throw new \UnexpectedValueException('OIDC user is invalid.');
@@ -131,10 +145,29 @@ class OIDCController extends AbstractActionController
             $session->expiration_timestamp = time() + $tokenSet->getExpiresIn();
             $this->auth->getStorage()->write($user);
             return $this->redirect()->toRoute('top');
-        } catch (\Throwable) {
+        } catch (\Throwable $error) {
             $log->info('OIDC: Authentication failed');
+            $this->logDiagnosticFailure($log, $error);
             return $this->redirect()->toRoute('top');
         }
+    }
+
+    private function diagnosticsEnabled(): bool
+    {
+        return (bool) $this->settings()->get('oidc_debug', false);
+    }
+
+    private function logDiagnosticFailure(Logger $log, \Throwable $error): void
+    {
+        if (! $this->diagnosticsEnabled()) {
+            return;
+        }
+
+        $log->notice(sprintf(
+            'OIDC diagnostic: Authentication failed with %s: %s',
+            get_class($error),
+            $error->getMessage()
+        ));
     }
 
     protected function getUser($oidc)
@@ -196,4 +229,3 @@ class OIDCController extends AbstractActionController
         return $client;
     }
 }
-

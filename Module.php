@@ -35,6 +35,7 @@ class Module extends AbstractModule
     public function uninstall(ServiceLocatorInterface $serviceLocator) {
         $omekaSettings = $this->getServiceLocator()->get('Omeka\Settings');
         $omekaSettings->delete('oidc_discovery');
+        $omekaSettings->delete('oidc_debug');
         $omekaSettings->delete('oidc_role');
         $omekaSettings->delete('oidc_site');
     }
@@ -56,6 +57,7 @@ class Module extends AbstractModule
         //Update Omeka settings
         $OIDCConfig = $form->getData();
         $omekaSettings->set('oidc_discovery', $OIDCConfig['oidc_discovery']);
+        $omekaSettings->set('oidc_debug', (bool) ($OIDCConfig['oidc_debug'] ?? false));
 	    //$omekaSettings->set('oidc_role', $OIDCConfig['oidc_role']);
         //$omekaSettings->set('oidc_site', $OIDCConfig['oidc_site']);
     }
@@ -69,6 +71,7 @@ class Module extends AbstractModule
         $form = $formElementManager->get('OIDC\Form\OIDCForm');
 	    $form->setData([
             'oidc_discovery' => $omekaSettings->get('oidc_discovery'),
+            'oidc_debug' => $omekaSettings->get('oidc_debug', false),
             //'oidc_role' => $omekaSettings->get('oidc_role'),
             //'oidc_site' => $omekaSettings->get('oidc_site')
         ]);

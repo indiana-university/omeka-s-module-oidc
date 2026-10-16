@@ -85,9 +85,15 @@ if ($insecureIssuerForm->isValid()) {
 
 $secureIssuerForm = new OIDCForm();
 $secureIssuerForm->init();
-$secureIssuerForm->setData(['oidc_discovery' => 'https://idp.example.test']);
+$secureIssuerForm->setData([
+    'oidc_discovery' => 'https://idp.example.test',
+    'oidc_debug' => '1',
+]);
 if (! $secureIssuerForm->isValid()) {
     throw new RuntimeException('The module configuration rejected a valid HTTPS issuer URI.');
+}
+if (true !== $secureIssuerForm->getData()['oidc_debug']) {
+    throw new RuntimeException('The module configuration did not enable OIDC diagnostic logging.');
 }
 
 fwrite(STDOUT, "OIDC module loaded and its controller was constructed in Omeka S.\n");

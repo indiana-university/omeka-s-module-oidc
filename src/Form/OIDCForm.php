@@ -3,7 +3,9 @@
 namespace OIDC\Form;
 
 use Laminas\Filter\StringTrim;
+use Laminas\Filter\Boolean as BooleanFilter;
 use Laminas\Filter\StripTags;
+use Laminas\Form\Element\Checkbox;
 use Laminas\Form\Element\Url;
 use Laminas\Form\Element\Text;
 use Laminas\Form\Element\Password;
@@ -31,6 +33,21 @@ class OIDCForm extends Form
                 'id' => 'oidc_discovery',
                 'required' => true,
             ]
+        ]);
+
+        $this->add([
+            'name' => 'oidc_debug',
+            'type' => Checkbox::class,
+            'options' => [
+                'label' => 'Enable OIDC diagnostic logging',
+                'info' => 'Logs exception details and returned claim names when Omeka logging is enabled. Enable only while troubleshooting.',
+                'use_hidden_element' => true,
+                'checked_value' => '1',
+                'unchecked_value' => '0',
+            ],
+            'attributes' => [
+                'id' => 'oidc_debug',
+            ],
         ]);
 
 	/*
@@ -70,6 +87,10 @@ class OIDCForm extends Form
             $this->getInputFilterSpecification()['oidc_discovery'],
             'oidc_discovery'
         );
+        $inputFilter->add(
+            $this->getInputFilterSpecification()['oidc_debug'],
+            'oidc_debug'
+        );
         $this->setInputFilter($inputFilter);
         $this->setPreferFormInputFilter(true);
     }
@@ -103,6 +124,12 @@ class OIDCForm extends Form
                             ],
                         ],
                     ],
+                ],
+            ],
+            'oidc_debug' => [
+                'required' => false,
+                'filters' => [
+                    ['name' => BooleanFilter::class],
                 ],
             ],
         ];
