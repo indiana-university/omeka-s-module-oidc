@@ -39,8 +39,10 @@ endpoints must use the same HTTPS origin.
 
 ## Development
 
-The supported development and deployment runtime is PHP 8.2. Install dependencies
-and run the required pull-request checks with:
+The supported development and deployment runtimes are PHP 8.2.35 or newer within
+the PHP 8.2 release line, PHP 8.3.36 or newer within the PHP 8.3 release line,
+and PHP 8.4.27 or newer within the PHP 8.4 release line. Install dependencies and
+run the required pull-request checks with:
 
 ```console
 composer install
