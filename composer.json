@@ -4,14 +4,14 @@
 	"license": "Apache-2.0",
 	"config": {
 		"platform": {
-			"php": "8.2.0"
+			"php": "8.2.35"
 		}
 	},
 	"require": {
 		"guzzlehttp/guzzle": "^8.0.1",
 		"facile-it/php-openid-client": "^1.0",
 		"laminas/laminas-diactoros": "^3.8.0",
-		"php": "^8.2"
+		"php": "~8.2.35 || ~8.3.36 || ~8.4.27"
 	},
 	"autoload": {
 		"psr-4": {
